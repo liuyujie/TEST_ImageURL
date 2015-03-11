@@ -7,6 +7,7 @@ iOS 下载图片前如何预取图片的大小 Demo
   具体格式的信息我这边就不描述了，百度就很容易的查到。
   当然jpg格式有点复杂，因为我在测试的时候，图片大小所在的字段位置是不固定的，所以会麻烦些，具体见Demo中的分析。
 png的分析，png格式图片大小的字段是在16-23，所以请求的时候只需要请求8字节即可（是不是很小）
+
 - (void)downloadPngImage
 {
     NSString *URLString = @"http://img2.3lian.com/img2007/13/29/20080409094710646.png";
@@ -14,7 +15,9 @@ png的分析，png格式图片大小的字段是在16-23，所以请求的时候
     [request setValue:@"bytes=16-23" forHTTPHeaderField:@"Range"];
     [[NSURLConnection connectionWithRequest:request delegate:self] start];
 }
+
 对应的每一位都需要进行转化，就能得到具体的数值
+
 - (CGSize)pngImageSizeWithHeaderData:(NSData *)data
 {
     int w1 = 0, w2 = 0, w3 = 0, w4 = 0;
@@ -32,10 +35,12 @@ png的分析，png格式图片大小的字段是在16-23，所以请求的时候
 
     return CGSizeMake(w, h);
 }
+
 jpg格式比较复杂所以先得了解清楚具体个字段的意思
 因为图片大小所在的字段区域不确定，所以我们要扩大请求范围
 这里209字节里面应该就已经包含全了所有的数据（这里我查了一些资料，也看了几个不同jpg的文件头16进制信息）
 不一定就完全正确，但是分析微博的jpg图片大小暂时没有什么问题
+
 - (void)downloadJpgImage
 {
     NSString *URLString = @"http://ww3.sinaimg.cn/thumbnail/673c0421jw1e9a6au7h5kj218g0rsn23.jpg";
@@ -56,7 +61,6 @@ jpg格式比较复杂所以先得了解清楚具体个字段的意思
         [data getBytes:&w2 range:NSMakeRange(0x61, 0x1)];
         short w = (w1 << 8) + w2;
         short h1 = 0, h2 = 0;
-
         [data getBytes:&h1 range:NSMakeRange(0x5e, 0x1)];
         [data getBytes:&h2 range:NSMakeRange(0x5f, 0x1)];
         short h = (h1 << 8) + h2;
@@ -71,7 +75,6 @@ jpg格式比较复杂所以先得了解清楚具体个字段的意思
                 [data getBytes:&w1 range:NSMakeRange(0xa5, 0x1)];
                 [data getBytes:&w2 range:NSMakeRange(0xa6, 0x1)];
                 short w = (w1 << 8) + w2;
-
                 short h1 = 0, h2 = 0;
                 [data getBytes:&h1 range:NSMakeRange(0xa3, 0x1)];
                 [data getBytes:&h2 range:NSMakeRange(0xa4, 0x1)];
@@ -83,7 +86,6 @@ jpg格式比较复杂所以先得了解清楚具体个字段的意思
                 [data getBytes:&w2 range:NSMakeRange(0x61, 0x1)];
                 short w = (w1 << 8) + w2;
                 short h1 = 0, h2 = 0;
-
                 [data getBytes:&h1 range:NSMakeRange(0x5e, 0x1)];
                 [data getBytes:&h2 range:NSMakeRange(0x5f, 0x1)];
                 short h = (h1 << 8) + h2;
@@ -94,7 +96,9 @@ jpg格式比较复杂所以先得了解清楚具体个字段的意思
         }
     }
 }
+
 gif的分析和png差不多，不过这里得到得应该是第一张图片的大小
+
 - (void)downloadGifImage
 {
     NSString *URLString = @"http://img4.21tx.com/2009/1116/92/20392.gif";
